@@ -148,61 +148,27 @@ fn main() -> Result<(), String> {
                     break 'running;
                 }
                 Event::KeyDown {
-                    keycode: Some(Keycode::Left),
+                    keycode: Some(keycode),
                     repeat: false,
                     ..
-                } => {
-                    player.velocity.x -= 1;
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::Right),
-                    repeat: false,
-                    ..
-                } => {
-                    player.velocity.x += 1;
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::Up),
-                    repeat: false,
-                    ..
-                } => {
-                    player.velocity.y -= 1;
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::Down),
-                    repeat: false,
-                    ..
-                } => {
-                    player.velocity.y += 1;
-                }
+                } => match keycode {
+                    Keycode::D => player.velocity.x += 1,
+                    Keycode::A => player.velocity.x -= 1,
+                    Keycode::S => player.velocity.y += 1,
+                    Keycode::W => player.velocity.y -= 1,
+                    _ => {}
+                },
                 Event::KeyUp {
-                    keycode: Some(Keycode::Left),
+                    keycode: Some(keycode),
                     repeat: false,
                     ..
-                } => {
-                    player.velocity.x += 1;
-                }
-                Event::KeyUp {
-                    keycode: Some(Keycode::Right),
-                    repeat: false,
-                    ..
-                } => {
-                    player.velocity.x -= 1;
-                }
-                Event::KeyUp {
-                    keycode: Some(Keycode::Up),
-                    repeat: false,
-                    ..
-                } => {
-                    player.velocity.y += 1;
-                }
-                Event::KeyUp {
-                    keycode: Some(Keycode::Down),
-                    repeat: false,
-                    ..
-                } => {
-                    player.velocity.y -= 1;
-                }
+                } => match keycode {
+                    Keycode::D => player.velocity.x -= 1,
+                    Keycode::A => player.velocity.x += 1,
+                    Keycode::S => player.velocity.y -= 1,
+                    Keycode::W => player.velocity.y += 1,
+                    _ => {}
+                },
                 _ => {}
             }
         }

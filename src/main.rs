@@ -6,6 +6,10 @@ use sdl2::rect::{Point, Rect};
 use sdl2::render::{Canvas, Texture};
 use std::time::Duration;
 
+// Hack to keep speed roughly the same, even when moving at an angle
+// 14^2 = 196 ~= 200 = (10^2 + 10^2)
+// As it stands, diagonal movement will be slightly faster than along
+// ordinal directions, but it's not very noticeable
 const PLAYER_MOVEMENT_SPEED: i32 = 14;
 const PLAYER_MOVEMENT_SPEED_ANGLE: i32 = 10;
 

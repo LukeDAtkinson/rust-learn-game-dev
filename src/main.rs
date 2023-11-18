@@ -1,8 +1,10 @@
 mod maths;
 mod player;
+mod render;
 
 use maths::Vec2;
 use player::Player;
+use render::Renderable;
 use sdl2::event::Event;
 use sdl2::image::{InitFlag, LoadTexture};
 use sdl2::keyboard::Keycode;

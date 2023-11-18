@@ -3,7 +3,7 @@ use sdl2::{
     render::{Canvas, Texture},
 };
 
-use crate::{maths::Vec2, Direction};
+use crate::{maths::Vec2, render::Renderable, Direction};
 
 const MAX_PLAYER_MOVEMENT_SPEED: f64 = 7.0;
 
@@ -15,6 +15,23 @@ pub(crate) struct Player<'a> {
     acceleration: Vec2,
     current_frame: i32,
     texture: Texture<'a>,
+}
+
+impl<'a> Renderable<Canvas<sdl2::video::Window>> for Player<'a> {
+    fn render(&self, canvas: &mut Canvas<sdl2::video::Window>) -> Result<(), String> {
+        let (width, height) = canvas.output_size()?;
+        let (frame_width, frame_height) = self.sprite.size();
+        let current_frame = Rect::new(
+            self.sprite.x() + frame_width as i32 * self.current_frame,
+            self.sprite.y() + frame_height as i32 * facing_to_spritesheet_row(&self.facing),
+            frame_width,
+            frame_height,
+        );
+        let screen_position = Point::new(width as i32 / 2, height as i32 / 2) + self.position;
+        let screen_rect = Rect::from_center(screen_position, frame_width, frame_height);
+        canvas.copy(&self.texture, current_frame, screen_rect)?;
+        Ok(())
+    }
 }
 
 impl<'a> Player<'a> {
@@ -56,23 +73,6 @@ impl<'a> Player<'a> {
             // Cheat: using the fact that all animations are 3 frames (NOT extensible)
             self.current_frame = (self.current_frame + 1) % 3;
         }
-    }
-
-    // TODO: This function couples our Player type to SDL2. Can we decouple it?
-    // I feel like we would have to add a generic PlayerRenderer object in a field and delegate to that.
-    pub(crate) fn render(&self, canvas: &mut Canvas<sdl2::video::Window>) -> Result<(), String> {
-        let (width, height) = canvas.output_size()?;
-        let (frame_width, frame_height) = self.sprite.size();
-        let current_frame = Rect::new(
-            self.sprite.x() + frame_width as i32 * self.current_frame,
-            self.sprite.y() + frame_height as i32 * facing_to_spritesheet_row(&self.facing),
-            frame_width,
-            frame_height,
-        );
-        let screen_position = Point::new(width as i32 / 2, height as i32 / 2) + self.position;
-        let screen_rect = Rect::from_center(screen_position, frame_width, frame_height);
-        canvas.copy(&self.texture, current_frame, screen_rect)?;
-        Ok(())
     }
 
     pub(crate) fn set_accelerating(&mut self, direction: &Direction) {

@@ -1,11 +1,13 @@
+mod maths;
 mod player;
 
+use maths::Vec2;
 use player::Player;
 use sdl2::event::Event;
 use sdl2::image::{InitFlag, LoadTexture};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
-use sdl2::rect::{Point, Rect};
+use sdl2::rect::Rect;
 use sdl2::render::Canvas;
 use std::time::Duration;
 
@@ -20,12 +22,6 @@ enum Direction {
     Down,
     Left,
     Right,
-}
-
-#[derive(Debug)]
-struct Velocity {
-    x: i32,
-    y: i32,
 }
 
 fn render(
@@ -71,10 +67,11 @@ fn main() -> Result<(), String> {
     let texture = texture_creator.load_texture("assets/bardo.png")?;
 
     let mut player = Player::new(
-        Point::new(0, 0),
+        Vec2::zero(),
         Rect::new(0, 0, 26, 36),
         Direction::Down,
-        Velocity { x: 0, y: 0 },
+        Vec2::zero(),
+        Vec2::zero(),
         0,
         texture,
     );
@@ -99,10 +96,10 @@ fn main() -> Result<(), String> {
                     repeat: false,
                     ..
                 } => match keycode {
-                    Keycode::D => player.velocity.x += 1,
-                    Keycode::A => player.velocity.x -= 1,
-                    Keycode::S => player.velocity.y += 1,
-                    Keycode::W => player.velocity.y -= 1,
+                    Keycode::D => player.set_accelerating(&Direction::Right),
+                    Keycode::A => player.set_accelerating(&Direction::Left),
+                    Keycode::S => player.set_accelerating(&Direction::Down),
+                    Keycode::W => player.set_accelerating(&Direction::Up),
                     _ => {}
                 },
                 Event::KeyUp {
@@ -110,10 +107,10 @@ fn main() -> Result<(), String> {
                     repeat: false,
                     ..
                 } => match keycode {
-                    Keycode::D => player.velocity.x -= 1,
-                    Keycode::A => player.velocity.x += 1,
-                    Keycode::S => player.velocity.y -= 1,
-                    Keycode::W => player.velocity.y += 1,
+                    Keycode::D => player.stop_accelerating(&Direction::Right),
+                    Keycode::A => player.stop_accelerating(&Direction::Left),
+                    Keycode::S => player.stop_accelerating(&Direction::Down),
+                    Keycode::W => player.stop_accelerating(&Direction::Up),
                     _ => {}
                 },
                 _ => {}
@@ -128,6 +125,8 @@ fn main() -> Result<(), String> {
         render(&mut canvas, color, &player)?;
 
         // Time Management
+        // TODO: Learn how to handle time steps properly
+        // https://gafferongames.com/post/fix_your_timestep/
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 20));
     }
 

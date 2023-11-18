@@ -3,26 +3,27 @@ use sdl2::{
     render::{Canvas, Texture},
 };
 
-use crate::{Direction, Velocity};
+use crate::{maths::Vec2, Direction};
 
-const PLAYER_MOVEMENT_SPEED: i32 = 7;
-const PLAYER_MOVEMENT_SPEED_ANGLE: i32 = 5;
+const MAX_PLAYER_MOVEMENT_SPEED: f64 = 7.0;
 
 pub(crate) struct Player<'a> {
-    position: Point,
+    position: Vec2,
     sprite: Rect,
     facing: Direction,
-    pub(crate) velocity: Velocity,
+    velocity: Vec2,
+    acceleration: Vec2,
     current_frame: i32,
     texture: Texture<'a>,
 }
 
 impl<'a> Player<'a> {
     pub(crate) fn new(
-        position: Point,
+        position: Vec2,
         sprite: Rect,
         facing: Direction,
-        velocity: Velocity,
+        velocity: Vec2,
+        acceleration: Vec2,
         current_frame: i32,
         texture: Texture<'a>,
     ) -> Self {
@@ -31,28 +32,27 @@ impl<'a> Player<'a> {
             sprite,
             facing,
             velocity,
+            acceleration,
             current_frame,
             texture,
         }
     }
 
     pub(crate) fn update(&mut self) {
-        if self.velocity.x != 0 && self.velocity.y != 0 {
-            self.position = self.position.offset(
-                self.velocity.x * PLAYER_MOVEMENT_SPEED_ANGLE,
-                self.velocity.y * PLAYER_MOVEMENT_SPEED_ANGLE,
-            );
-        } else {
-            self.position = self.position.offset(
-                self.velocity.x * PLAYER_MOVEMENT_SPEED,
-                self.velocity.y * PLAYER_MOVEMENT_SPEED,
-            );
-            if let Some(f) = velocity_to_facing(&self.velocity) {
-                self.facing = f;
-            }
+        self.velocity = self.velocity + self.acceleration;
+        if self.velocity.magnitude() > MAX_PLAYER_MOVEMENT_SPEED {
+            self.velocity = MAX_PLAYER_MOVEMENT_SPEED * self.velocity.normalize()
         }
+
+        if !self.velocity.near_zero() {
+            self.position = self.position + self.velocity;
+        }
+        if let Some(f) = velocity_to_facing(&self.velocity) {
+            self.facing = f;
+        }
+
         // Only animate if the player is moving
-        if self.velocity.x != 0 || self.velocity.y != 0 {
+        if !self.velocity.near_zero() {
             // Cheat: using the fact that all animations are 3 frames (NOT extensible)
             self.current_frame = (self.current_frame + 1) % 3;
         }
@@ -67,24 +67,47 @@ impl<'a> Player<'a> {
             frame_width,
             frame_height,
         );
-        let screen_position = self.position + Point::new(width as i32 / 2, height as i32 / 2);
+        let screen_position = Point::new(width as i32 / 2, height as i32 / 2) + self.position;
         let screen_rect = Rect::from_center(screen_position, frame_width, frame_height);
         canvas.copy(&self.texture, current_frame, screen_rect)?;
         Ok(())
     }
-}
 
-    fn velocity_to_facing(velocity: &Velocity) -> Option<Direction> {
-        // We only change facing if we are moving in one specific direction
-        // Otherwise, we will keep the existing facing
-        match velocity {
-            Velocity { x: -1, y: 0 } => Some(Direction::Left),
-            Velocity { x: 1, y: 0 } => Some(Direction::Right),
-            Velocity { x: 0, y: 1 } => Some(Direction::Down),
-            Velocity { x: 0, y: -1 } => Some(Direction::Up),
-            _ => None,
+    pub(crate) fn set_accelerating(&mut self, direction: &Direction) {
+        match direction {
+            Direction::Up => self.acceleration.y = -1.0,
+            Direction::Down => self.acceleration.y = 1.0,
+            Direction::Left => self.acceleration.x = -1.0,
+            Direction::Right => self.acceleration.x = 1.0,
         }
     }
+    pub(crate) fn stop_accelerating(&mut self, direction: &Direction) {
+        match direction {
+            Direction::Up => self.acceleration.y = 0.0,
+            Direction::Down => self.acceleration.y = 0.0,
+            Direction::Left => self.acceleration.x = 0.0,
+            Direction::Right => self.acceleration.x = 0.0,
+        }
+    }
+}
+
+fn velocity_to_facing(&Vec2 { x, y }: &Vec2) -> Option<Direction> {
+    // We only change facing if we are moving in one specific direction
+    // Otherwise, we will keep the existing facing
+
+    if x.abs() > y.abs() {
+        if x > 0.0 {
+            return Some(Direction::Right);
+        } else {
+            return Some(Direction::Left);
+        }
+    }
+    if y > 0.0 {
+        Some(Direction::Down)
+    } else {
+        Some(Direction::Up)
+    }
+}
 
 fn facing_to_spritesheet_row(direction: &Direction) -> i32 {
     match direction {

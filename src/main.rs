@@ -1,16 +1,15 @@
 mod maths;
 mod player;
-mod render;
+mod sdl_render;
 
+use crate::sdl_render::render;
 use maths::Vec2;
 use player::Player;
-use render::Renderable;
 use sdl2::event::Event;
 use sdl2::image::{InitFlag, LoadTexture};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use sdl2::render::Canvas;
 use std::time::Duration;
 
 // Hack to keep speed roughly the same, even when moving at an angle
@@ -26,20 +25,6 @@ enum Direction {
     Right,
 }
 
-fn render(
-    canvas: &mut Canvas<sdl2::video::Window>,
-    color: Color,
-    player: &Player,
-) -> Result<(), String> {
-    canvas.set_draw_color(color);
-    canvas.clear();
-
-    player.render(canvas)?;
-
-    canvas.present();
-    Ok(())
-}
-
 fn find_sdl_gl_driver() -> Option<u32> {
     for (index, item) in sdl2::render::drivers().enumerate() {
         if item.name == "opengl" {
@@ -48,6 +33,7 @@ fn find_sdl_gl_driver() -> Option<u32> {
     }
     None
 }
+
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;

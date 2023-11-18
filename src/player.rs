@@ -58,6 +58,8 @@ impl<'a> Player<'a> {
         }
     }
 
+    // TODO: This function couples our Player type to SDL2. Can we decouple it?
+    // I feel like we would have to add a generic PlayerRenderer object in a field and delegate to that.
     pub(crate) fn render(&self, canvas: &mut Canvas<sdl2::video::Window>) -> Result<(), String> {
         let (width, height) = canvas.output_size()?;
         let (frame_width, frame_height) = self.sprite.size();
@@ -91,10 +93,13 @@ impl<'a> Player<'a> {
     }
 }
 
-fn velocity_to_facing(&Vec2 { x, y }: &Vec2) -> Option<Direction> {
+fn velocity_to_facing(v: &Vec2) -> Option<Direction> {
     // We only change facing if we are moving in one specific direction
     // Otherwise, we will keep the existing facing
-
+    if v.near_zero() {
+        return None;
+    }
+    let (x, y) = (v.x, v.y);
     if x.abs() > y.abs() {
         if x > 0.0 {
             return Some(Direction::Right);

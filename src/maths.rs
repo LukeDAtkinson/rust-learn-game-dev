@@ -1,5 +1,4 @@
 use rand::Rng;
-use sdl2::rect::Point;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
@@ -8,20 +7,6 @@ pub struct Vec2 {
     pub y: f64,
 }
 
-impl From<Vec2> for Point {
-    fn from(value: Vec2) -> Self {
-        Point::new(value.x as i32, value.y as i32)
-    }
-}
-
-impl Add<Vec2> for Point {
-    type Output = Point;
-
-    fn add(self, rhs: Vec2) -> Self::Output {
-        Point::new(self.x + rhs.x as i32, self.y + rhs.y as i32)
-    }
-    // add code here
-}
 impl Vec2 {
     pub fn new(x: f64, y: f64) -> Self {
         Self { x, y }

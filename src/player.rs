@@ -1,37 +1,29 @@
-use sdl2::{rect::Rect, render::Texture};
-
 use crate::{maths::Vec2, Direction};
 
 const MAX_PLAYER_MOVEMENT_SPEED: f64 = 7.0;
 
 pub(crate) struct Player {
     position: Vec2,
-    sprite: Rect,
     facing: Direction,
     velocity: Vec2,
     acceleration: Vec2,
     current_frame: i32,
-    texture: Texture,
 }
 
 impl Player {
     pub(crate) fn new(
         position: Vec2,
-        sprite: Rect,
         facing: Direction,
         velocity: Vec2,
         acceleration: Vec2,
         current_frame: i32,
-        texture: Texture,
     ) -> Self {
         Self {
             position,
-            sprite,
             facing,
             velocity,
             acceleration,
             current_frame,
-            texture,
         }
     }
 
@@ -75,9 +67,6 @@ impl Player {
     pub(crate) fn facing(&self) -> Direction {
         self.facing
     }
-    pub(crate) fn sprite(&self) -> Rect {
-        self.sprite
-    }
 
     pub(crate) fn current_frame(&self) -> i32 {
         self.current_frame
@@ -85,10 +74,6 @@ impl Player {
 
     pub(crate) fn position(&self) -> Vec2 {
         self.position
-    }
-
-    pub(crate) fn texture(&self) -> &Texture {
-        &self.texture
     }
 }
 

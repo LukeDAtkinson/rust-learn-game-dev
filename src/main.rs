@@ -1,17 +1,20 @@
 mod maths;
 mod player;
 mod render;
-mod sdl_render;
+mod render_sdl;
 
 use maths::Vec2;
 use player::Player;
 use render::Renderer;
+use render_sdl::background::Background;
+use render_sdl::renderer::SdlRenderer;
+use render_sdl::sdl_player::SdlPlayer;
 use sdl2::event::Event;
 use sdl2::image::{InitFlag, LoadTexture};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use sdl_render::{Background, SdlRenderer};
+
 use std::time::Duration;
 
 // Hack to keep speed roughly the same, even when moving at an angle
@@ -56,15 +59,9 @@ fn main() -> Result<(), String> {
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator.load_texture("assets/bardo.png")?;
 
-    let mut player = Player::new(
-        Vec2::zero(),
-        Rect::new(0, 0, 26, 36),
-        Direction::Down,
-        Vec2::zero(),
-        Vec2::zero(),
-        0,
-        texture,
-    );
+    let player = Player::new(Vec2::zero(), Direction::Down, Vec2::zero(), Vec2::zero(), 0);
+
+    let mut sdl_player = SdlPlayer::new(player, texture, Rect::new(0, 0, 26, 36));
 
     let renderer = SdlRenderer {};
     let mut background = Background::new(Color::RGB(0, 64, 255));
@@ -90,10 +87,10 @@ fn main() -> Result<(), String> {
                     repeat: false,
                     ..
                 } => match keycode {
-                    Keycode::D => player.set_accelerating(&Direction::Right),
-                    Keycode::A => player.set_accelerating(&Direction::Left),
-                    Keycode::S => player.set_accelerating(&Direction::Down),
-                    Keycode::W => player.set_accelerating(&Direction::Up),
+                    Keycode::D => sdl_player.set_accelerating(&Direction::Right),
+                    Keycode::A => sdl_player.set_accelerating(&Direction::Left),
+                    Keycode::S => sdl_player.set_accelerating(&Direction::Down),
+                    Keycode::W => sdl_player.set_accelerating(&Direction::Up),
                     _ => {}
                 },
                 Event::KeyUp {
@@ -101,10 +98,10 @@ fn main() -> Result<(), String> {
                     repeat: false,
                     ..
                 } => match keycode {
-                    Keycode::D => player.stop_accelerating(&Direction::Right),
-                    Keycode::A => player.stop_accelerating(&Direction::Left),
-                    Keycode::S => player.stop_accelerating(&Direction::Down),
-                    Keycode::W => player.stop_accelerating(&Direction::Up),
+                    Keycode::D => sdl_player.stop_accelerating(&Direction::Right),
+                    Keycode::A => sdl_player.stop_accelerating(&Direction::Left),
+                    Keycode::S => sdl_player.stop_accelerating(&Direction::Down),
+                    Keycode::W => sdl_player.stop_accelerating(&Direction::Up),
                     _ => {}
                 },
                 _ => {}
@@ -113,10 +110,10 @@ fn main() -> Result<(), String> {
 
         // Update
         i = (i + 1) % 255;
-        player = player.update();
+        sdl_player = sdl_player.update();
 
         // Render
-        renderer.render(&mut canvas, &[&background, &player])?;
+        renderer.render(&mut canvas, &[&background, &sdl_player])?;
 
         // Time Management
         // TODO: Learn how to handle time steps properly

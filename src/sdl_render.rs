@@ -4,27 +4,52 @@ use sdl2::{
     render::Canvas,
 };
 
-use crate::{player::Player, Direction};
+use crate::{
+    player::Player,
+    render::{Renderable, Renderer},
+    Direction,
+};
 
-pub(crate) trait Renderable<T> {
-    fn render(&self, target: &mut T) -> Result<(), String>;
-}
+pub(crate) struct SdlRenderer;
 
-pub(crate) fn render(
-    canvas: &mut Canvas<sdl2::video::Window>,
+pub(crate) struct Background {
     color: Color,
-    player: &Player,
-) -> Result<(), String> {
-    canvas.set_draw_color(color);
-    canvas.clear();
-
-    player.render(canvas)?;
-
-    canvas.present();
-    Ok(())
 }
 
-impl<'a> Renderable<Canvas<sdl2::video::Window>> for Player<'a> {
+impl Background {
+    pub(crate) fn new(color: Color) -> Self {
+        Self { color }
+    }
+
+    pub(crate) fn update(mut self, color: Color) -> Self {
+        self.color = color;
+        self
+    }
+}
+
+impl Renderable<Canvas<sdl2::video::Window>> for Background {
+    fn render(&self, target: &mut Canvas<sdl2::video::Window>) -> Result<(), String> {
+        target.set_draw_color(self.color);
+        target.clear();
+        Ok(())
+    }
+}
+
+impl Renderer<Canvas<sdl2::video::Window>> for SdlRenderer {
+    fn render(
+        &self,
+        target: &mut Canvas<sdl2::video::Window>,
+        renderables: &[&dyn Renderable<Canvas<sdl2::video::Window>>],
+    ) -> Result<(), String> {
+        for r in renderables {
+            r.render(target)?
+        }
+        target.present();
+        Ok(())
+    }
+}
+
+impl Renderable<Canvas<sdl2::video::Window>> for Player {
     fn render(&self, canvas: &mut Canvas<sdl2::video::Window>) -> Result<(), String> {
         let (width, height) = canvas.output_size()?;
         let (frame_width, frame_height) = self.sprite().size();

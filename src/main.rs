@@ -1,15 +1,17 @@
 mod maths;
 mod player;
+mod render;
 mod sdl_render;
 
-use crate::sdl_render::render;
 use maths::Vec2;
 use player::Player;
+use render::Renderer;
 use sdl2::event::Event;
 use sdl2::image::{InitFlag, LoadTexture};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
+use sdl_render::{Background, SdlRenderer};
 use std::time::Duration;
 
 // Hack to keep speed roughly the same, even when moving at an angle
@@ -64,10 +66,14 @@ fn main() -> Result<(), String> {
         texture,
     );
 
+    let renderer = SdlRenderer {};
+    let mut background = Background::new(Color::RGB(0, 64, 255));
     let mut event_pump = sdl_context.event_pump()?;
     let mut i = 0;
     'running: loop {
         let color = Color::RGB(i, 64, 255 - i);
+
+        background = background.update(color);
 
         // Handle Events
         for event in event_pump.poll_iter() {
@@ -107,10 +113,10 @@ fn main() -> Result<(), String> {
 
         // Update
         i = (i + 1) % 255;
-        player.update();
+        player = player.update();
 
         // Render
-        render(&mut canvas, color, &player)?;
+        renderer.render(&mut canvas, &[&background, &player])?;
 
         // Time Management
         // TODO: Learn how to handle time steps properly

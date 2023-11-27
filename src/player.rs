@@ -4,17 +4,17 @@ use crate::{maths::Vec2, Direction};
 
 const MAX_PLAYER_MOVEMENT_SPEED: f64 = 7.0;
 
-pub(crate) struct Player<'a> {
+pub(crate) struct Player {
     position: Vec2,
     sprite: Rect,
     facing: Direction,
     velocity: Vec2,
     acceleration: Vec2,
     current_frame: i32,
-    texture: Texture<'a>,
+    texture: Texture,
 }
 
-impl<'a> Player<'a> {
+impl Player {
     pub(crate) fn new(
         position: Vec2,
         sprite: Rect,
@@ -22,7 +22,7 @@ impl<'a> Player<'a> {
         velocity: Vec2,
         acceleration: Vec2,
         current_frame: i32,
-        texture: Texture<'a>,
+        texture: Texture,
     ) -> Self {
         Self {
             position,
@@ -35,7 +35,7 @@ impl<'a> Player<'a> {
         }
     }
 
-    pub(crate) fn update(&mut self) {
+    pub(crate) fn update(mut self) -> Self {
         self.velocity = self.velocity + self.acceleration;
         if self.velocity.magnitude() > MAX_PLAYER_MOVEMENT_SPEED {
             self.velocity = MAX_PLAYER_MOVEMENT_SPEED * self.velocity.normalize()
@@ -53,6 +53,7 @@ impl<'a> Player<'a> {
             // Cheat: using the fact that all animations are 3 frames (NOT extensible)
             self.current_frame = (self.current_frame + 1) % 3;
         }
+        self
     }
 
     pub(crate) fn set_accelerating(&mut self, direction: &Direction) {
@@ -86,7 +87,7 @@ impl<'a> Player<'a> {
         self.position
     }
 
-    pub(crate) fn texture(&self) -> &Texture<'_> {
+    pub(crate) fn texture(&self) -> &Texture {
         &self.texture
     }
 }
